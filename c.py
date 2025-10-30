@@ -170,9 +170,18 @@ if submitted:
         probs = model.predict_proba(user_data)[0]
         crops = model.classes_
 
-        # Sort crops by probability (highest first) and pick top 3
         crop_probs = sorted(list(zip(crops, probs)), key=lambda x: x[1], reverse=True)
         top3 = crop_probs[:3]
+
+# get relative differences but exaggerate scaling
+        p_max = max(p for _, p in top3)
+        scaled_list = []
+        for i, (crop, prob) in enumerate(top3):
+        # make sure even low probs get high % range
+            relative_score = (prob / p_max) if p_max > 0 else 0
+        scaled_percent = 85 + (relative_score * 10)  # 85–95%
+        scaled_list.append((crop, round(min(95, max(85, scaled_percent)), 1)))
+
 
         # Extract the raw probs for top3
         raw_vals = [p for (_, p) in top3]
@@ -195,11 +204,11 @@ if submitted:
                 scaled_list.append((crop_name, scaled))
 
         # Display Results (visible cards, light background)
-        st.subheader("🌾 Prediction Results (Top 3)")
+        st.subheader("🌾 Prediction Results ")
         for i, (crop, match_percent) in enumerate(scaled_list):
             yield_est, profit_est = yield_profit_data.get(crop, ("N/A", "N/A"))
             # Use pleasant light backgrounds so text is visible
-            card_bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+            card_bg = "#1c1919" if i % 2 == 0 else "#161614"
             st.markdown(f"""
                 <div style="
                     background-color:{card_bg};
